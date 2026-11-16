@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Campus Grounds & Parking Topology — LPU Smart Parking{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+            <h2 class="text-xl font-black text-slate-900 flex items-center space-x-2">
+                <i class="fa-solid fa-map-location-dot text-orange-600"></i>
+                <span>Monitored Campus Parking Grounds &amp; Topology</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Empirically calibrated across Lovely Professional University's 600-acre campus in Phagwara, Punjab.</p>
+        </div>
+        <span class="text-xs font-semibold px-3 py-1.5 bg-orange-50 text-orange-700 rounded-xl border border-orange-200">
+            12 Calibrated Grounds · Aerial Survey
+        </span>
+    </div>
+
+    <!-- Grounds Directory Grid -->
+    <div id="zonesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="p-10 text-center text-slate-400 bg-white rounded-2xl border border-slate-200 col-span-full">
+            <i class="fa-solid fa-spinner fa-spin text-2xl text-orange-600 mb-2"></i>
+            <p class="text-sm font-medium">Loading campus parking grounds directory…</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/zones.js"></script>
+{% endblock %}

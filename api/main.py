@@ -40,10 +40,26 @@ app.include_router(router)
 async def favicon():
     return FileResponse("frontend/static/favicon.ico")
 
-# Root Web Dashboard Route
+# Multi-Page Web Dashboard Routes
 @app.get("/", response_class=HTMLResponse)
-async def serve_dashboard(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+async def serve_driver_view(request: Request):
+    return templates.TemplateResponse("driver.html", {"request": request, "active_page": "driver"})
+
+@app.get("/admin", response_class=HTMLResponse)
+async def serve_admin_view(request: Request):
+    return templates.TemplateResponse("admin.html", {"request": request, "active_page": "admin"})
+
+@app.get("/vision", response_class=HTMLResponse)
+async def serve_vision_view(request: Request):
+    return templates.TemplateResponse("vision.html", {"request": request, "active_page": "vision"})
+
+@app.get("/analytics", response_class=HTMLResponse)
+async def serve_analytics_view(request: Request):
+    return templates.TemplateResponse("analytics.html", {"request": request, "active_page": "analytics"})
+
+@app.get("/zones", response_class=HTMLResponse)
+async def serve_zones_view(request: Request):
+    return templates.TemplateResponse("zones.html", {"request": request, "active_page": "zones"})
 
 if __name__ == "__main__":
     uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True)
