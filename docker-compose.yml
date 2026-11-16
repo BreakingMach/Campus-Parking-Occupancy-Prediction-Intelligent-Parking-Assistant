@@ -14,8 +14,8 @@ services:
       - ENVIRONMENT=production
       - HOST=0.0.0.0
       - PORT=8000
-      - BEST_MODEL_PATH=/app/collab_content_backup/runs/detect/train/weights/best.pt
-      - YOLO26L_MODEL_PATH=/app/collab_content_backup/yolo26l.pt
+      - BEST_MODEL_PATH=/app/models/weights/best.pt
+      - YOLO26L_MODEL_PATH=/app/models/weights/yolo26l.pt
       - TORCHINDUCTOR_CACHE_DIR=/tmp/torch_inductor
       - TORCH_HOME=/tmp/torch
       - YOLO_CONFIG_DIR=/tmp/Ultralytics

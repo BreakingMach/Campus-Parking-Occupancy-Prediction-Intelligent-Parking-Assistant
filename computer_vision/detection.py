@@ -28,31 +28,25 @@ from computer_vision.roi_manager import ROIManager
 
 logger = logging.getLogger(__name__)
 
-# Model paths
-SPECIFIED_BEST_PATH = Path(r"D:\Academic\Semester 5\ML\Supervised\collab_content_backup\runs\detect\train\weights\best.pt")
-RELATIVE_BEST_PATH = Path("collab_content_backup/runs/detect/train/weights/best.pt").resolve()
-FALLBACK_BEST_PATH = Path("best.pt").resolve()
+# Model candidate paths
+BEST_CANDIDATE_PATHS = [
+    Path(os.environ.get("BEST_MODEL_PATH", "")),
+    Path("models/weights/best.pt").resolve(),
+    Path("collab_content_backup/runs/detect/train/weights/best.pt").resolve(),
+    Path(r"D:\Academic\Semester 5\ML\Supervised\collab_content_backup\runs\detect\train\weights\best.pt"),
+    Path("best.pt").resolve(),
+]
 
-SPECIFIED_YOLO26L_PATH = Path(r"D:\Academic\Semester 5\ML\Supervised\collab_content_backup\yolo26l.pt")
-RELATIVE_YOLO26L_PATH = Path("collab_content_backup/yolo26l.pt").resolve()
+YOLO26L_CANDIDATE_PATHS = [
+    Path(os.environ.get("YOLO26L_MODEL_PATH", "")),
+    Path("models/weights/yolo26l.pt").resolve(),
+    Path("collab_content_backup/yolo26l.pt").resolve(),
+    Path(r"D:\Academic\Semester 5\ML\Supervised\collab_content_backup\yolo26l.pt"),
+    Path("yolo26l.pt").resolve(),
+]
 
-env_best = os.environ.get("BEST_MODEL_PATH")
-if env_best and Path(env_best).exists():
-    BEST_WEIGHTS_PATH = Path(env_best)
-elif SPECIFIED_BEST_PATH.exists():
-    BEST_WEIGHTS_PATH = SPECIFIED_BEST_PATH
-elif RELATIVE_BEST_PATH.exists():
-    BEST_WEIGHTS_PATH = RELATIVE_BEST_PATH
-else:
-    BEST_WEIGHTS_PATH = FALLBACK_BEST_PATH
-
-env_yolo = os.environ.get("YOLO26L_MODEL_PATH")
-if env_yolo and Path(env_yolo).exists():
-    YOLO26L_WEIGHTS_PATH = Path(env_yolo)
-elif SPECIFIED_YOLO26L_PATH.exists():
-    YOLO26L_WEIGHTS_PATH = SPECIFIED_YOLO26L_PATH
-else:
-    YOLO26L_WEIGHTS_PATH = RELATIVE_YOLO26L_PATH
+BEST_WEIGHTS_PATH = next((p for p in BEST_CANDIDATE_PATHS if p.name == "best.pt" and p.exists()), Path("models/weights/best.pt"))
+YOLO26L_WEIGHTS_PATH = next((p for p in YOLO26L_CANDIDATE_PATHS if p.name == "yolo26l.pt" and p.exists()), Path("models/weights/yolo26l.pt"))
 
 # Inference parameters
 CONFIDENCE_THRESHOLD = 0.25

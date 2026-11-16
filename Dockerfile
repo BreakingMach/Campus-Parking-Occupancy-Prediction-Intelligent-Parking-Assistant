@@ -53,10 +53,6 @@ COPY --chown=appuser:appgroup frontend/ ./frontend/
 COPY --chown=appuser:appgroup models/ ./models/
 COPY --chown=appuser:appgroup recommendation/ ./recommendation/
 
-# Copy YOLO model weights into container image
-COPY --chown=appuser:appgroup collab_content_backup/runs/detect/train/weights/best.pt ./collab_content_backup/runs/detect/train/weights/best.pt
-COPY --chown=appuser:appgroup collab_content_backup/yolo26l.pt ./collab_content_backup/yolo26l.pt
-
 # Switch to non-root user
 USER appuser
 

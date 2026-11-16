@@ -42,4 +42,10 @@ Thumbs.db
 
 # Ultralytics & Torch local runs/cache
 *.log
-runs/
+/runs/
+
+# Explicitly ensure model weights are tracked and never ignored
+!models/weights/best.pt
+!models/weights/yolo26l.pt
+!collab_content_backup/runs/detect/train/weights/best.pt
+!collab_content_backup/yolo26l.pt
