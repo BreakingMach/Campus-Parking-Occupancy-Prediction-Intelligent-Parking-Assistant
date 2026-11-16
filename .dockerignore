@@ -1,0 +1,46 @@
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+Untitled0.ipynb
+
+# Dataset training directories (weights are kept, but raw 400MB image batches excluded from build context)
+collab_content_backup/LPU---Parking-1/
+collab_content_backup/.config/
+collab_content_backup/LPU PARKINGz/
+collab_content_backup/runs/detect/train/events*
+collab_content_backup/runs/detect/train/args.yaml
+collab_content_backup/runs/detect/val/
+
+# Keep model weights explicitly:
+!collab_content_backup/runs/detect/train/weights/best.pt
+!collab_content_backup/yolo26l.pt

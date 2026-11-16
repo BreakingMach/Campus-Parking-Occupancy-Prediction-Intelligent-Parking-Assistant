@@ -36,14 +36,20 @@ FALLBACK_BEST_PATH = Path("best.pt").resolve()
 SPECIFIED_YOLO26L_PATH = Path(r"D:\Academic\Semester 5\ML\Supervised\collab_content_backup\yolo26l.pt")
 RELATIVE_YOLO26L_PATH = Path("collab_content_backup/yolo26l.pt").resolve()
 
-if SPECIFIED_BEST_PATH.exists():
+env_best = os.environ.get("BEST_MODEL_PATH")
+if env_best and Path(env_best).exists():
+    BEST_WEIGHTS_PATH = Path(env_best)
+elif SPECIFIED_BEST_PATH.exists():
     BEST_WEIGHTS_PATH = SPECIFIED_BEST_PATH
 elif RELATIVE_BEST_PATH.exists():
     BEST_WEIGHTS_PATH = RELATIVE_BEST_PATH
 else:
     BEST_WEIGHTS_PATH = FALLBACK_BEST_PATH
 
-if SPECIFIED_YOLO26L_PATH.exists():
+env_yolo = os.environ.get("YOLO26L_MODEL_PATH")
+if env_yolo and Path(env_yolo).exists():
+    YOLO26L_WEIGHTS_PATH = Path(env_yolo)
+elif SPECIFIED_YOLO26L_PATH.exists():
     YOLO26L_WEIGHTS_PATH = SPECIFIED_YOLO26L_PATH
 else:
     YOLO26L_WEIGHTS_PATH = RELATIVE_YOLO26L_PATH

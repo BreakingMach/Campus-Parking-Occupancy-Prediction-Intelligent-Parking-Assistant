@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  parking-assistant-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: campus-parking-intelligence:dev
+    container_name: campus-parking-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - HOST=0.0.0.0
+      - PORT=8000
+      - BEST_MODEL_PATH=/app/collab_content_backup/runs/detect/train/weights/best.pt
+      - YOLO26L_MODEL_PATH=/app/collab_content_backup/yolo26l.pt
+      - TORCHINDUCTOR_CACHE_DIR=/tmp/torch_inductor
+      - TORCH_HOME=/tmp/torch
+      - YOLO_CONFIG_DIR=/tmp/Ultralytics
+      - MPLCONFIGDIR=/tmp/matplotlib
+    volumes:
+      # Live-mount source directories for instant hot reload
+      - ./api:/app/api
+      - ./frontend:/app/frontend
+      - ./computer_vision:/app/computer_vision
+      - ./models:/app/models
+      - ./recommendation:/app/recommendation
+      - ./features:/app/features
+      - ./configs:/app/configs
+      - ./artifacts:/app/artifacts
+    command: ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

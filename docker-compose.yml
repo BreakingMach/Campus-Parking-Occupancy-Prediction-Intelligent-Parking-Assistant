@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  parking-assistant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: campus-parking-intelligence:latest
+    container_name: campus-parking-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - BEST_MODEL_PATH=/app/collab_content_backup/runs/detect/train/weights/best.pt
+      - YOLO26L_MODEL_PATH=/app/collab_content_backup/yolo26l.pt
+      - TORCHINDUCTOR_CACHE_DIR=/tmp/torch_inductor
+      - TORCH_HOME=/tmp/torch
+      - YOLO_CONFIG_DIR=/tmp/Ultralytics
+      - MPLCONFIGDIR=/tmp/matplotlib
+    volumes:
+      # Persist newly trained ML artifacts or configuration changes
+      - ./artifacts:/app/artifacts
+      - ./configs:/app/configs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G

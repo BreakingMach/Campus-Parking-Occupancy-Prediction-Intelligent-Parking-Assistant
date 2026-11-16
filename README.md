@@ -63,6 +63,19 @@ python -m models.train
 *Outputs: Generates `lpu_timeseries.csv`, fits Persistence, Seasonal Mean, and Tuned XGBoost models, and exports `artifacts/model_comparison.csv` and serialised `.joblib` pipelines.*
 
 ### 2. Launch FastAPI Web Application & API Server
+
+#### Option A: Run via Docker (Recommended)
+```bash
+# Start all containerized services with Docker Compose
+docker compose up --build -d
+
+# Check container status & health
+docker compose ps
+docker compose logs -f
+```
+See [DOCKER.md](file:///D:/Academic/Semester%205/ML/Supervised/DOCKER.md) for full containerization details and GPU configuration.
+
+#### Option B: Run Locally
 ```bash
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
