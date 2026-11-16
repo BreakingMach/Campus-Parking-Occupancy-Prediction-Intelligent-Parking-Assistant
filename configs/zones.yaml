@@ -1,0 +1,217 @@
+campus:
+  name: "Lovely Professional University (LPU)"
+  location: "Phagwara, Punjab"
+  total_campus_acres: 600
+  sampling_interval_minutes: 5
+  forecast_horizons_minutes: [15, 30, 60]
+
+zones:
+  - id: "ZONE_MAINGATE"
+    name: "LPU Main Gate Parking"
+    category: "Campus Entrance & Transit"
+    nearby_landmarks: ["GT Road Entry", "Security Checkpost", "Visitor Registration"]
+    theoretical_capacity: 260
+    operational_capacity: 240
+    camera_id: "CAM_MAINGATE_01"
+    walking_distances_meters:
+      Block_1: 750
+      Block_26_CSE: 650
+      Block_57_Agri: 1200
+      Architecture_Block: 800
+      MB_Food_Square: 700
+      Law_Block: 900
+      Central_Mess_2: 1100
+      Sports_Ground: 850
+
+  - id: "ZONE_BLOCK1"
+    name: "Block 1 Parking"
+    category: "Academic & Administrative Core"
+    nearby_landmarks: ["Block 1", "Sh. Baldevraj Mittal Auditorium", "LPU Baldev Raj Mittal Park", "Uni Health Center"]
+    theoretical_capacity: 150
+    operational_capacity: 140
+    camera_id: "CAM_BLOCK1_01"
+    walking_distances_meters:
+      Block_1: 30
+      Block_26_CSE: 280
+      Block_57_Agri: 800
+      Architecture_Block: 350
+      MB_Food_Square: 420
+      Law_Block: 600
+      Central_Mess_2: 750
+      Sports_Ground: 500
+
+  - id: "ZONE_ARCH"
+    name: "Architecture Block Parking"
+    category: "Design & Applied Arts"
+    nearby_landmarks: ["Architecture Block", "Product and Industrial Block", "Security Office", "Shri Baldev Raj Mittal Hospital"]
+    theoretical_capacity: 130
+    operational_capacity: 120
+    camera_id: "CAM_ARCH_01"
+    walking_distances_meters:
+      Block_1: 350
+      Block_26_CSE: 400
+      Block_57_Agri: 700
+      Architecture_Block: 40
+      MB_Food_Square: 180
+      Law_Block: 650
+      Central_Mess_2: 600
+      Sports_Ground: 450
+
+  - id: "ZONE_MBFS"
+    name: "MB Food Square Parking"
+    category: "Dining, Hospital & Social Hub"
+    nearby_landmarks: ["MB Food Square", "Shri Baldev Raj Mittal Hospital", "Architecture Block"]
+    theoretical_capacity: 220
+    operational_capacity: 200
+    camera_id: "CAM_MBFS_01"
+    walking_distances_meters:
+      Block_1: 420
+      Block_26_CSE: 450
+      Block_57_Agri: 650
+      Architecture_Block: 180
+      MB_Food_Square: 30
+      Law_Block: 700
+      Central_Mess_2: 550
+      Sports_Ground: 400
+
+  - id: "ZONE_LAW"
+    name: "Law Block Parking"
+    category: "School of Law & Management"
+    nearby_landmarks: ["School of Law", "Management Block", "LPU Law Gate"]
+    theoretical_capacity: 140
+    operational_capacity: 130
+    camera_id: "CAM_LAW_01"
+    walking_distances_meters:
+      Block_1: 600
+      Block_26_CSE: 500
+      Block_57_Agri: 900
+      Architecture_Block: 650
+      MB_Food_Square: 700
+      Law_Block: 40
+      Central_Mess_2: 450
+      Sports_Ground: 600
+
+  - id: "ZONE_GH5"
+    name: "GH 5 Parking"
+    category: "Residential (Hostels)"
+    nearby_landmarks: ["GH-5 Girls Hostel", "Boys Hostel Complex", "Law Gate Bypass"]
+    theoretical_capacity: 180
+    operational_capacity: 160
+    camera_id: "CAM_GH5_01"
+    walking_distances_meters:
+      Block_1: 650
+      Block_26_CSE: 550
+      Block_57_Agri: 950
+      Architecture_Block: 680
+      MB_Food_Square: 720
+      Law_Block: 150
+      Central_Mess_2: 400
+      Sports_Ground: 650
+
+  - id: "ZONE_MAINPARK_NORTH"
+    name: "LPU Main Parking (North - Block 26/39 CSE)"
+    category: "Core Computing, Admission & Innovation"
+    nearby_landmarks: ["Division of Admissions", "Late Mrs. Mittal Samadhi", "Block 26", "Shanti Devi Mittal Auditorium"]
+    theoretical_capacity: 350
+    operational_capacity: 320
+    camera_id: "CAM_MAINPARK_N01"
+    walking_distances_meters:
+      Block_1: 280
+      Block_26_CSE: 50
+      Block_57_Agri: 750
+      Architecture_Block: 400
+      MB_Food_Square: 450
+      Law_Block: 500
+      Central_Mess_2: 700
+      Sports_Ground: 400
+
+  - id: "ZONE_MAINPARK_SOUTH"
+    name: "LPU Main Parking (South - CSE / Innovation 39)"
+    category: "Core Computing & Labs"
+    nearby_landmarks: ["School of Computer Science & Engineering", "LPU Innovation Studio Block 39", "Shanti Devi Mittal Auditorium"]
+    theoretical_capacity: 320
+    operational_capacity: 300
+    camera_id: "CAM_MAINPARK_S02"
+    walking_distances_meters:
+      Block_1: 300
+      Block_26_CSE: 60
+      Block_57_Agri: 700
+      Architecture_Block: 420
+      MB_Food_Square: 480
+      Law_Block: 520
+      Central_Mess_2: 680
+      Sports_Ground: 380
+
+  - id: "ZONE_CENTRAL_MESS2"
+    name: "Central Mess 2 Parking"
+    category: "Dining & Hostel Block 41-D"
+    nearby_landmarks: ["41-D Block", "Lovely Bake Studio", "Campus Nanak Nagri Sub Post Office", "S Mess Rd"]
+    theoretical_capacity: 120
+    operational_capacity: 110
+    camera_id: "CAM_MESS2_01"
+    walking_distances_meters:
+      Block_1: 750
+      Block_26_CSE: 700
+      Block_57_Agri: 600
+      Architecture_Block: 600
+      MB_Food_Square: 550
+      Law_Block: 450
+      Central_Mess_2: 30
+      Sports_Ground: 500
+
+  - id: "ZONE_BH2"
+    name: "Boys Hostel 2 Parking"
+    category: "Residential & Sports Arena"
+    nearby_landmarks: ["LPU Boys Hostel 2", "BH-3 Lovely Professional University", "XL Arena", "Indoor Playground cum Stadium"]
+    theoretical_capacity: 150
+    operational_capacity: 135
+    camera_id: "CAM_BH2_01"
+    walking_distances_meters:
+      Block_1: 800
+      Block_26_CSE: 650
+      Block_57_Agri: 800
+      Architecture_Block: 750
+      MB_Food_Square: 700
+      Law_Block: 650
+      Central_Mess_2: 500
+      Sports_Ground: 350
+
+  - id: "ZONE_SPORTS"
+    name: "LPU Sports Ground Parking"
+    category: "Athletics & Mechanical Link"
+    nearby_landmarks: ["Basket Ball Courts", "Kabaddi Ground", "Kho Kho Ground", "Mechanical Link Rd"]
+    theoretical_capacity: 160
+    operational_capacity: 145
+    camera_id: "CAM_SPORTS_01"
+    walking_distances_meters:
+      Block_1: 500
+      Block_26_CSE: 400
+      Block_57_Agri: 500
+      Architecture_Block: 450
+      MB_Food_Square: 400
+      Law_Block: 600
+      Central_Mess_2: 500
+      Sports_Ground: 20
+
+  - id: "ZONE_BLOCK57"
+    name: "LPU Block 57 Parking"
+    category: "Agriculture & Mechanical Core"
+    nearby_landmarks: ["School Of Agriculture (LPU Block 57)", "School Of Mechanical Engineering (Block 55)", "School Of Bio Engineering", "Gurudwara Rd"]
+    theoretical_capacity: 200
+    operational_capacity: 185
+    camera_id: "CAM_BLOCK57_01"
+    walking_distances_meters:
+      Block_1: 800
+      Block_26_CSE: 750
+      Block_57_Agri: 30
+      Architecture_Block: 700
+      MB_Food_Square: 650
+      Law_Block: 900
+      Central_Mess_2: 600
+      Sports_Ground: 500
+
+recommendation_weights:
+  availability_weight: 0.50
+  distance_weight: 0.35
+  freshness_penalty_weight: 0.15
+  saturation_threshold: 0.90

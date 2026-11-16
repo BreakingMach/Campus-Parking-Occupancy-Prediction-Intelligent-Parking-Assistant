@@ -1,0 +1,6 @@
+Model,Horizon,MAE,RMSE,R2,Inflection_MAE
+Persistence Baseline,+15 min,52.927,79.777,-0.4745,101.341
+Seasonal Mean Baseline,+15 min,40.255,53.712,0.3316,N/A
+Tuned XGBoost,+15 min,33.509,45.104,0.5287,43.657
+Tuned XGBoost,+30 min,35.627,47.903,0.4682,N/A
+Tuned XGBoost,+60 min,35.731,48.008,0.4659,N/A

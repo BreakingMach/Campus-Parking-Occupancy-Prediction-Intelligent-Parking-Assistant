@@ -1,0 +1,81 @@
+# configs/model_config.yaml
+# Single source of truth for all hyperparameters, split ratios, and artifact paths.
+# Every .py file reads from here. Never hardcode a hyperparameter in source code.
+
+data:
+  sampling_cadence_minutes: 5
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  # 1-hour gap between train/val and val/test to prevent feature seepage across boundaries
+  chronological_buffer_hours: 1
+  parquet_path: "data/processed/lpu_timeseries.parquet"
+  timetable_path: "data/external/lpu_timetable.json"
+  exam_calendar_path: "data/external/lpu_exam_calendar.json"
+
+features:
+  lag_minutes: [15, 30, 45, 60]
+  rolling_windows_minutes: [30, 60]
+  forecast_horizons_minutes: [15, 30, 60]
+  saturation_threshold: 0.90
+  # Minutes-of-day around which class transition surge flags are set (±15 min window)
+  bell_times_minutes_of_day: [525, 645, 765, 885, 1005]  # 8:45, 10:45, 12:45, 14:45, 16:45
+
+models:
+  xgboost_regressor:
+    n_estimators: 200
+    learning_rate: 0.04
+    max_depth: 6
+    subsample: 0.85
+    colsample_bytree: 0.80
+    reg_lambda: 1.5
+    min_child_weight: 3
+    objective: "reg:squarederror"
+    eval_metric: "mae"
+    random_state: 42
+
+  xgboost_classifier:
+    n_estimators: 150
+    learning_rate: 0.05
+    max_depth: 5
+    subsample: 0.80
+    colsample_bytree: 0.75
+    reg_lambda: 1.0
+    objective: "binary:logistic"
+    eval_metric: "aucpr"
+    random_state: 42
+
+  random_forest:
+    n_estimators: 150
+    max_depth: 12
+    min_samples_split: 5
+    min_samples_leaf: 2
+    max_features: "sqrt"
+    n_jobs: -1
+    random_state: 42
+
+  ridge:
+    alpha: 1.0
+    fit_intercept: true
+
+training:
+  cv_n_splits: 5
+  # 1-hour gap (12 × 5-min steps) between train fold and validation fold
+  cv_gap: 12
+  early_stopping_rounds: 20
+  smote_k_neighbors: 5
+
+artifacts:
+  pipeline_dir: "artifacts/pipelines"
+  figures_dir: "artifacts/figures"
+  metrics_csv: "artifacts/model_comparison.csv"
+
+recommendation:
+  availability_weight: 0.50
+  distance_weight: 0.35
+  freshness_penalty_weight: 0.15
+  saturation_hard_exclude_threshold: 0.70   # P(sat) above this → zone excluded
+  anti_herding_score_delta_threshold: 0.10  # score gap below this → softmax dispatch
+  anti_herding_beta: 0.05                   # softmax temperature
+  camera_stale_seconds: 300                 # 5 min — beyond this, staleness penalty applies
+  camera_offline_seconds: 1800              # 30 min — beyond this, fallback to historical mean

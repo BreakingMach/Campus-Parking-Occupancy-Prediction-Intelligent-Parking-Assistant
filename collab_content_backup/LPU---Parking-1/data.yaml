@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['Car']
+
+roboflow:
+  workspace: mohammed-shujath-ali-ckjug
+  project: lpu-parking
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/mohammed-shujath-ali-ckjug/lpu-parking/dataset/1

@@ -1,0 +1,66 @@
+import numpy as np
+import pandas as pd
+from typing import Dict, Any, Tuple
+from sklearn.linear_model import Ridge
+from sklearn.ensemble import RandomForestRegressor
+import xgboost as xgb
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+class MultiHorizonForecaster:
+    """
+    Manages direct multi-horizon estimators (H=15, H=30, H=60 minutes)
+    and benchmarks them against Persistence and Historical Mean baselines.
+    """
+    def __init__(self, model_type: str = "xgboost"):
+        self.model_type = model_type
+        self.models: Dict[str, Any] = {}
+        self.horizons = ["H15", "H30", "H60"]
+
+    def _get_estimator(self):
+        if self.model_type == "ridge":
+            return Ridge(alpha=1.0)
+        elif self.model_type == "random_forest":
+            return RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42)
+        elif self.model_type == "xgboost":
+            return xgb.XGBRegressor(
+                n_estimators=150,
+                learning_rate=0.05,
+                max_depth=6,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                random_state=42
+            )
+        else:
+            raise ValueError(f"Unknown model_type: {self.model_type}")
+
+    def fit(self, X_train: pd.DataFrame, targets_train: Dict[str, pd.Series]):
+        """
+        Fits dedicated models for H15, H30, and H60.
+        """
+        for h in self.horizons:
+            estimator = self._get_estimator()
+            estimator.fit(X_train, targets_train[h])
+            self.models[h] = estimator
+
+    def predict(self, X: pd.DataFrame) -> Dict[str, np.ndarray]:
+        """
+        Generates predictions for all horizons.
+        """
+        preds = {}
+        for h in self.horizons:
+            preds[h] = self.models[h].predict(X)
+        return preds
+
+    @staticmethod
+    def evaluate(y_true: pd.Series, y_pred: np.ndarray) -> Dict[str, float]:
+        """
+        Calculates MAE, RMSE, and R2.
+        """
+        mae = mean_absolute_error(y_true, y_pred)
+        rmse = np.sqrt(mean_squared_error(y_true, y_pred))
+        r2 = r2_score(y_true, y_pred)
+        return {
+            "MAE": round(mae, 3),
+            "RMSE": round(rmse, 3),
+            "R2": round(r2, 4)
+        }
