@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LPU Smart Parking — Campus Intelligence System{% endblock %}</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+<!-- ═══════════════════════════ GLOBAL HEADER ═══════════════════════════ -->
+<header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+        <!-- Brand / Logo -->
+        <a href="/" class="flex items-center space-x-3 group">
+            <div class="h-11 w-11 rounded-xl bg-white p-1 border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
+                <img src="/static/lpu_logo.png" alt="LPU Logo" class="h-full w-full object-contain">
+            </div>
+            <div>
+                <h1 class="text-base sm:text-lg font-black text-slate-900 leading-tight">LPU Smart Parking</h1>
+                <p class="text-[11px] text-slate-500 font-medium">Lovely Professional University · Punjab</p>
+            </div>
+        </a>
+
+        <!-- Desktop Navigation Bar -->
+        <nav class="hidden md:flex items-center space-x-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200 text-xs font-bold">
+            <a href="/" class="px-3.5 py-1.5 rounded-lg transition-all flex items-center space-x-1.5 {% if active_page == 'driver' %}bg-white text-orange-600 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                <i class="fa-solid fa-car"></i><span>Driver Assistant</span>
+            </a>
+            <a href="/admin" class="px-3.5 py-1.5 rounded-lg transition-all flex items-center space-x-1.5 {% if active_page == 'admin' %}bg-white text-orange-600 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                <i class="fa-solid fa-shield-halved"></i><span>Estate Console</span>
+            </a>
+            <a href="/vision" class="px-3.5 py-1.5 rounded-lg transition-all flex items-center space-x-1.5 {% if active_page == 'vision' %}bg-white text-orange-600 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                <i class="fa-solid fa-video"></i><span>Vision AI Lab</span>
+            </a>
+            <a href="/analytics" class="px-3.5 py-1.5 rounded-lg transition-all flex items-center space-x-1.5 {% if active_page == 'analytics' %}bg-white text-orange-600 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                <i class="fa-solid fa-chart-line"></i><span>Benchmarks</span>
+            </a>
+            <a href="/zones" class="px-3.5 py-1.5 rounded-lg transition-all flex items-center space-x-1.5 {% if active_page == 'zones' %}bg-white text-orange-600 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                <i class="fa-solid fa-map-location-dot"></i><span>Campus Grounds</span>
+            </a>
+        </nav>
+
+        <!-- Right Side: Health Indicator & Mobile Menu Toggle -->
+        <div class="flex items-center space-x-3">
+            <div id="systemStatusDot" class="hidden sm:flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                <span class="w-2 h-2 rounded-full bg-slate-300" id="statusDot"></span>
+                <span id="statusLabel" class="font-medium text-[11px]">Connecting…</span>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button onclick="toggleMobileNav()" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 border border-slate-200">
+                <i class="fa-solid fa-bars text-sm"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation Dropdown -->
+    <div id="mobileNavMenu" class="hidden md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1 text-sm font-semibold">
+        <a href="/" class="block px-3 py-2 rounded-lg {% if active_page == 'driver' %}bg-orange-50 text-orange-600{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <i class="fa-solid fa-car w-5"></i> Driver Assistant
+        </a>
+        <a href="/admin" class="block px-3 py-2 rounded-lg {% if active_page == 'admin' %}bg-orange-50 text-orange-600{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <i class="fa-solid fa-shield-halved w-5"></i> Estate Console
+        </a>
+        <a href="/vision" class="block px-3 py-2 rounded-lg {% if active_page == 'vision' %}bg-orange-50 text-orange-600{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <i class="fa-solid fa-video w-5"></i> Vision AI Lab
+        </a>
+        <a href="/analytics" class="block px-3 py-2 rounded-lg {% if active_page == 'analytics' %}bg-orange-50 text-orange-600{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <i class="fa-solid fa-chart-line w-5"></i> Benchmarks
+        </a>
+        <a href="/zones" class="block px-3 py-2 rounded-lg {% if active_page == 'zones' %}bg-orange-50 text-orange-600{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+            <i class="fa-solid fa-map-location-dot w-5"></i> Campus Grounds
+        </a>
+    </div>
+</header>
+
+<!-- ═══════════════════════════ MAIN CONTENT ═══════════════════════════ -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    {% block content %}{% endblock %}
+</main>
+
+<script>
+function toggleMobileNav() {
+    const el = document.getElementById('mobileNavMenu');
+    if (el) el.classList.toggle('hidden');
+}
+
+// Global System Health Probe
+async function probeGlobalHealth() {
+    try {
+        const res = await fetch('/api/health');
+        if (!res.ok) throw new Error('API Offline');
+        const data = await res.json();
+        const dot = document.getElementById('statusDot');
+        const lbl = document.getElementById('statusLabel');
+        const ml  = data.ml_model?.xgboost_loaded;
+        const cv  = data.yolo_model?.loaded;
+        if (dot && lbl) {
+            dot.className = `w-2 h-2 rounded-full ${ml ? 'bg-emerald-500' : 'bg-amber-500'}`;
+            lbl.textContent = ml && cv
+                ? 'XGBoost + YOLO Online'
+                : ml ? 'XGBoost ✓ YOLO ready'
+                : 'API Connected';
+        }
+    } catch {
+        const dot = document.getElementById('statusDot');
+        const lbl = document.getElementById('statusLabel');
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        if (lbl) lbl.textContent = 'API Offline';
+    }
+}
+document.addEventListener('DOMContentLoaded', probeGlobalHealth);
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
