@@ -28,12 +28,11 @@ from computer_vision.roi_manager import ROIManager
 
 logger = logging.getLogger(__name__)
 
-# Model candidate paths
+# Model candidate paths — priority order: env var → models/weights/ → collab backup → cwd fallback
 BEST_CANDIDATE_PATHS = [
     Path(os.environ.get("BEST_MODEL_PATH", "")),
     Path("models/weights/best.pt").resolve(),
     Path("collab_content_backup/runs/detect/train/weights/best.pt").resolve(),
-    Path(r"D:\Academic\Semester 5\ML\Supervised\collab_content_backup\runs\detect\train\weights\best.pt"),
     Path("best.pt").resolve(),
 ]
 
@@ -41,7 +40,6 @@ YOLO26L_CANDIDATE_PATHS = [
     Path(os.environ.get("YOLO26L_MODEL_PATH", "")),
     Path("models/weights/yolo26l.pt").resolve(),
     Path("collab_content_backup/yolo26l.pt").resolve(),
-    Path(r"D:\Academic\Semester 5\ML\Supervised\collab_content_backup\yolo26l.pt"),
     Path("yolo26l.pt").resolve(),
 ]
 

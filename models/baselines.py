@@ -41,8 +41,7 @@ class SeasonalHistoricalMeanForecaster:
         df['hour_approx'] = np.round((np.arctan2(df['hour_sin'], df['hour_cos']) / (2 * np.pi) * 24) % 24).astype(int)
         df['day_approx'] = np.round((np.arctan2(df['day_sin'], df['day_cos']) / (2 * np.pi) * 7) % 7).astype(int)
 
-        preds = []
-        for _, row in df.iterrows():
-            key = (int(row['day_approx']), int(row['hour_approx']))
-            preds.append(self.lookup_table.get(key, self.global_mean))
-        return np.array(preds)
+        # Vectorised lookup — eliminates O(n) iterrows() loop
+        keys = list(zip(df['day_approx'].tolist(), df['hour_approx'].tolist()))
+        preds = np.array([self.lookup_table.get(k, self.global_mean) for k in keys])
+        return preds

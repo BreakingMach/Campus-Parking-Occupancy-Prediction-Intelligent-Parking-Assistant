@@ -13,9 +13,14 @@ app = FastAPI(
     version="2.0.0"
 )
 
+# CORS: allow_credentials=True requires explicit origin list (wildcard is rejected by browsers).
+# In production set ALLOWED_ORIGINS env-var to your deployed domain.
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000")
+_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

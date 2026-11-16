@@ -6,16 +6,22 @@ No hardcoded heuristics remain in production paths.
 
 import os
 import json
+import logging
 import yaml
 import pandas as pd
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from typing import List, Dict, Any, Optional
 
 from api.schemas import PredictionRequest, PredictionResponse, RecommendationResponse, ZoneRankItem
 from recommendation.parking_ranker import ParkingRanker
 from models.inference import predict_zone, predict_all_zones, models_ready
+
+logger = logging.getLogger(__name__)
+_IST = ZoneInfo("Asia/Kolkata")
 
 router = APIRouter(prefix="/api")
 
@@ -147,9 +153,7 @@ def get_recommendations(
             detail=f"Unknown destination '{destination}'. Valid: {_get_valid_destinations()}"
         )
 
-    now = datetime.now(timezone.utc)
-
-    # Run real ML predictions for every zone
+    now = datetime.now(_IST)
     all_preds = predict_all_zones(
         ZONES_MAP,
         is_exam_day=is_exam_day,
@@ -206,7 +210,7 @@ def get_campus_snapshot(
     Returns current predicted occupancy for ALL 12 zones.
     Used by the Admin dashboard charts — real ML data, not random numbers.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(_IST)
     all_preds = predict_all_zones(
         ZONES_MAP,
         is_exam_day=is_exam_day,
@@ -333,11 +337,13 @@ async def detect_image(
     from computer_vision.detection import compare_models_from_bytes, detect_from_bytes
 
     if model_choice == "both":
-        comp_res = compare_models_from_bytes(image_bytes, parsed_roi)
+        comp_res = await run_in_threadpool(compare_models_from_bytes, image_bytes, parsed_roi)
         best_m = comp_res.get("best_model", {})
         yolo_m = comp_res.get("yolo26l_model", {})
 
         target_count = best_m.get("vehicle_count_roi", 0) if parsed_roi else best_m.get("vehicle_count_total", 0)
+        best_loaded = best_m.get("error") is None
+        yolo_loaded = yolo_m.get("error") is None
 
         return JSONResponse(content={
             "roi_defined": comp_res.get("roi_defined", False),
@@ -352,12 +358,12 @@ async def detect_image(
             "detections": best_m.get("detections", []),
             "annotated_image_base64": best_m.get("annotated_image_base64", ""),
             "inference_time_ms": best_m.get("inference_time_ms", 0.0),
-            "model_loaded": True,
+            "model_loaded": best_loaded and yolo_loaded,
             "error": comp_res.get("error", None),
             "filename": file.filename or "unknown",
         })
     else:
-        single_res = detect_from_bytes(image_bytes, parsed_roi, model_choice)
+        single_res = await run_in_threadpool(detect_from_bytes, image_bytes, parsed_roi, model_choice)
         target_count = single_res.get("vehicle_count_roi", 0) if parsed_roi else single_res.get("vehicle_count_total", 0)
         return JSONResponse(content={
             "roi_defined": parsed_roi is not None,
@@ -368,7 +374,7 @@ async def detect_image(
             "detections": single_res.get("detections", []),
             "annotated_image_base64": single_res.get("annotated_image_base64", ""),
             "inference_time_ms": single_res.get("inference_time_ms", 0.0),
-            "model_loaded": True,
+            "model_loaded": single_res.get("error") is None,
             "error": single_res.get("error", None),
             "filename": file.filename or "unknown",
         })
@@ -391,13 +397,13 @@ async def detect_frame(file: UploadFile = File(...)):
         raise HTTPException(status_code=413, detail="Frame too large. Maximum 10 MB.")
 
     from computer_vision.detection import detect_from_bytes
-    result = detect_from_bytes(image_bytes)
+    result = await run_in_threadpool(detect_from_bytes, image_bytes)
 
     return JSONResponse(content={
         "vehicle_count":          result["vehicle_count"],
         "detections":             result["detections"],
         "annotated_image_base64": result["annotated_image_base64"],
         "inference_time_ms":      result["inference_time_ms"],
-        "model_loaded":           result["model_loaded"],
+        "model_loaded":           result.get("error") is None,
         "error":                  result["error"],
     })

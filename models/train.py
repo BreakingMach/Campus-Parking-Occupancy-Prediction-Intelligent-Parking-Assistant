@@ -3,6 +3,7 @@ import yaml
 import joblib
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from data_pipeline.generator import generate_lpu_parking_dataset
 from data_pipeline.splitter import ChronologicalSplitter
 from features.feature_pipeline import TimeSeriesFeaturePipeline
@@ -10,6 +11,7 @@ from models.baselines import PersistenceForecaster, SeasonalHistoricalMeanForeca
 from models.forecaster import MultiHorizonForecaster
 from models.classifier import SaturationClassifier
 from evaluation.metrics import compute_regression_metrics, compute_inflection_metrics
+
 
 def run_training_pipeline():
     print("=================================================================")
@@ -27,22 +29,24 @@ def run_training_pipeline():
 
     print(f"Total Raw Observation Records: {len(df_raw)}")
 
-    # 2. Chronological Split (70/15/15)
+    # 2. Chronological Split (70/15/15) — split BEFORE feature engineering to prevent leakage
     print("\n[Step 2] Executing Chronological Split with zero data leakage...")
     splitter = ChronologicalSplitter(train_ratio=0.70, val_ratio=0.15, test_ratio=0.15, buffer_hours=1)
     df_train, df_val, df_test = splitter.split_dataframe(df_raw)
     print(f"Train Records: {len(df_train)} | Val Records: {len(df_val)} | Holdout Test Records: {len(df_test)}")
 
-    # 3. Feature Pipeline Transformation
+    # 3. Feature Pipeline Transformation — groupby(zone_id) prevents cross-zone lag bleed
     print("\n[Step 3] Building Causal Lags, Velocity, Shifted Rolling Windows, and Cyclics...")
     feat_pipe = TimeSeriesFeaturePipeline(lag_minutes=[15, 30, 45, 60], rolling_windows_minutes=[30, 60])
 
-    # Process train and test separately
+    # Each split transformed independently (no data flowing across the temporal gap)
     train_transformed = feat_pipe.transform_zone_series(df_train)
-    test_transformed = feat_pipe.transform_zone_series(df_test)
+    val_transformed   = feat_pipe.transform_zone_series(df_val)
+    test_transformed  = feat_pipe.transform_zone_series(df_test)
 
     X_train, targets_train = feat_pipe.prepare_training_matrices(train_transformed)
-    X_test, targets_test = feat_pipe.prepare_training_matrices(test_transformed)
+    X_val,   targets_val   = feat_pipe.prepare_training_matrices(val_transformed)
+    X_test,  targets_test  = feat_pipe.prepare_training_matrices(test_transformed)
 
     print(f"Feature Matrix Shape: {X_train.shape} across {len(X_train.columns)} features.")
 
@@ -64,20 +68,23 @@ def run_training_pipeline():
     print("\n[Step 5] Training Tuned XGBoost Forecaster for H15, H30, and H60...")
     xgb_forecaster = MultiHorizonForecaster(model_type="xgboost")
     xgb_forecaster.fit(X_train, targets_train)
-    preds = xgb_forecaster.predict(X_test)
+    preds     = xgb_forecaster.predict(X_test)
+    val_preds = xgb_forecaster.predict(X_val)
 
     xgb_metrics_h15 = compute_regression_metrics(targets_test["H15"].values, preds["H15"])
     xgb_metrics_h30 = compute_regression_metrics(targets_test["H30"].values, preds["H30"])
     xgb_metrics_h60 = compute_regression_metrics(targets_test["H60"].values, preds["H60"])
+    xgb_val_h15     = compute_regression_metrics(targets_val["H15"].values, val_preds["H15"])
 
     print(f"XGBoost Forecaster (H15): MAE = {xgb_metrics_h15['MAE']}, RMSE = {xgb_metrics_h15['RMSE']}, R2 = {xgb_metrics_h15['R2']}")
     print(f"XGBoost Forecaster (H30): MAE = {xgb_metrics_h30['MAE']}, RMSE = {xgb_metrics_h30['RMSE']}, R2 = {xgb_metrics_h30['R2']}")
     print(f"XGBoost Forecaster (H60): MAE = {xgb_metrics_h60['MAE']}, RMSE = {xgb_metrics_h60['RMSE']}, R2 = {xgb_metrics_h60['R2']}")
+    print(f"XGBoost Val (H15):        MAE = {xgb_val_h15['MAE']}, R2 = {xgb_val_h15['R2']}  [validation sanity check]")
 
-    # 6. Inflection-Hour Evaluation (The Critical Viva Discriminator!)
+    # 6. Inflection-Hour Evaluation
     print("\n[Step 6] Computing Inflection-Hour MAE (Lecture Bell Surge Windows)...")
     pers_infl = compute_inflection_metrics(targets_test["H15"].values, y_pred_pers_h15, X_test["is_class_transition"].values)
-    xgb_infl = compute_inflection_metrics(targets_test["H15"].values, preds["H15"], X_test["is_class_transition"].values)
+    xgb_infl  = compute_inflection_metrics(targets_test["H15"].values, preds["H15"], X_test["is_class_transition"].values)
 
     print(f"Persistence Inflection MAE (Rush Hours): {pers_infl['MAE_Rush_Inflection']} cars")
     print(f"XGBoost Inflection MAE (Rush Hours):     {xgb_infl['MAE_Rush_Inflection']} cars  <-- (~40%+ error reduction!)")
@@ -86,29 +93,40 @@ def run_training_pipeline():
     print("\n[Step 7] Training Dual-Head Saturation Classifier P(Occ >= 90%)...")
     sat_clf = SaturationClassifier()
     sat_clf.fit(X_train, targets_train["SAT15"])
-    sat_preds = sat_clf.predict(X_test)
+    sat_preds  = sat_clf.predict(X_test)
     sat_probas = sat_clf.predict_proba(X_test)
-    sat_eval = sat_clf.evaluate(targets_test["SAT15"], sat_preds, sat_probas)
+    sat_eval   = sat_clf.evaluate(targets_test["SAT15"], sat_preds, sat_probas)
     print(f"Saturation Classifier: Accuracy={sat_eval['Accuracy']}, Recall={sat_eval['Recall']}, PR_AUC={sat_eval['PR_AUC']}")
 
-    # 8. Export Model Artifacts & Comparison Table
+    # 8. Export Model Artifacts
+    # Persist wrappers via joblib (safe on the same runtime version).
+    # Also save each inner XGBoost Booster in the portable .ubj format so the
+    # models survive an XGBoost version upgrade or Docker deployment.
     os.makedirs("artifacts/pipelines", exist_ok=True)
     joblib.dump(xgb_forecaster, "artifacts/pipelines/xgb_multi_horizon.joblib")
-    joblib.dump(sat_clf, "artifacts/pipelines/saturation_classifier.joblib")
-    print("\n[Step 8] Serialized models to artifacts/pipelines/")
+    joblib.dump(sat_clf,        "artifacts/pipelines/saturation_classifier.joblib")
 
-    # Build Comparison DataFrame
+    # Portable Booster exports (cross-version safe)
+    booster_dir = Path("artifacts/pipelines/boosters")
+    booster_dir.mkdir(parents=True, exist_ok=True)
+    for horizon, model in xgb_forecaster.models.items():
+        model.get_booster().save_model(str(booster_dir / f"xgb_{horizon}.ubj"))
+    sat_clf.model.get_booster().save_model(str(booster_dir / "saturation_clf.ubj"))
+    print(f"\n[Step 8] Serialized joblib wrappers and portable .ubj boosters to artifacts/pipelines/")
+
+    # 9. Build Comparison DataFrame
     comparison_df = pd.DataFrame([
         {"Model": "Persistence Baseline", "Horizon": "+15 min", "MAE": pers_metrics["MAE"], "RMSE": pers_metrics["RMSE"], "R2": pers_metrics["R2"], "Inflection_MAE": pers_infl["MAE_Rush_Inflection"]},
         {"Model": "Seasonal Mean Baseline", "Horizon": "+15 min", "MAE": seas_metrics["MAE"], "RMSE": seas_metrics["RMSE"], "R2": seas_metrics["R2"], "Inflection_MAE": "N/A"},
         {"Model": "Tuned XGBoost", "Horizon": "+15 min", "MAE": xgb_metrics_h15["MAE"], "RMSE": xgb_metrics_h15["RMSE"], "R2": xgb_metrics_h15["R2"], "Inflection_MAE": xgb_infl["MAE_Rush_Inflection"]},
         {"Model": "Tuned XGBoost", "Horizon": "+30 min", "MAE": xgb_metrics_h30["MAE"], "RMSE": xgb_metrics_h30["RMSE"], "R2": xgb_metrics_h30["R2"], "Inflection_MAE": "N/A"},
-        {"Model": "Tuned XGBoost", "Horizon": "+60 min", "MAE": xgb_metrics_h60["MAE"], "RMSE": xgb_metrics_h60["RMSE"], "R2": xgb_metrics_h60["R2"], "Inflection_MAE": "N/A"}
+        {"Model": "Tuned XGBoost", "Horizon": "+60 min", "MAE": xgb_metrics_h60["MAE"], "RMSE": xgb_metrics_h60["RMSE"], "R2": xgb_metrics_h60["R2"], "Inflection_MAE": "N/A"},
     ])
     comparison_df.to_csv("artifacts/model_comparison.csv", index=False)
     print("\nSaved artifacts/model_comparison.csv")
     print("\nRESULTS SUMMARY TABLE:")
     print(comparison_df.to_string(index=False))
+
 
 if __name__ == "__main__":
     run_training_pipeline()

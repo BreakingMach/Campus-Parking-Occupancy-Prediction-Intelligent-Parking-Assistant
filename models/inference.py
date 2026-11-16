@@ -5,15 +5,18 @@ so the API can serve live predictions from actual sensor/simulated inputs.
 """
 
 import os
+import hashlib
 import logging
 import joblib
 import numpy as np
 import pandas as pd
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import Dict, Any, Optional
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+_IST = ZoneInfo("Asia/Kolkata")
 
 FEATURE_COLS = [
     'vehicle_count', 'operational_capacity', 'occupancy_ratio',
@@ -77,7 +80,7 @@ def _build_feature_row(
     for all lags (most conservative fallback).
     """
     if timestamp is None:
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(_IST)
 
     hour_frac = timestamp.hour + timestamp.minute / 60.0
     dow = timestamp.weekday()  # 0=Mon ... 6=Sun
@@ -174,7 +177,8 @@ def predict_zone(
         source     = "xgboost_model"
 
     avail      = max(0, operational_capacity - pred_count)
-    occ_rate   = round(pred_count / operational_capacity, 4) if operational_capacity > 0 else 0.0
+    # Cap occ_rate at 1.0 — a zone cannot exceed 100% by definition
+    occ_rate   = round(min(1.0, pred_count / operational_capacity), 4) if operational_capacity > 0 else 0.0
     status     = ("SATURATED" if occ_rate >= 0.90 else
                   "FILLING_FAST" if occ_rate >= 0.75 else "AVAILABLE")
 
@@ -201,7 +205,7 @@ def predict_all_zones(
     Returns zone_id -> prediction dict.
     """
     if timestamp is None:
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(_IST)
 
     hour = timestamp.hour + timestamp.minute / 60.0
     is_peak = (8.0 <= hour <= 10.0) or (11.0 <= hour <= 14.0) or (16.0 <= hour <= 18.0)
@@ -212,7 +216,6 @@ def predict_all_zones(
         # Realistic sensor simulation: occupancy varies by time of day + zone type
         base_occ = 0.72 if is_peak else 0.38
         # Add zone-specific noise seed (deterministic so it's stable per refresh window)
-        import hashlib
         zone_seed = int(hashlib.md5(f"{z_id}{timestamp.strftime('%Y%m%d%H%M')}".encode()).hexdigest(), 16) % 1000
         rng_offset = (zone_seed % 200 - 100) / 1000.0  # ±0.10 offset
         sim_occ = max(0.05, min(0.98, base_occ + rng_offset +
