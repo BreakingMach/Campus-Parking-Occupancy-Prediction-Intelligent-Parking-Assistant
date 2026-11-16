@@ -6,8 +6,8 @@ No hardcoded heuristics remain in production paths.
 
 import os
 import json
-import logging
 import yaml
+import logging
 import pandas as pd
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -397,13 +397,16 @@ async def detect_frame(file: UploadFile = File(...)):
         raise HTTPException(status_code=413, detail="Frame too large. Maximum 10 MB.")
 
     from computer_vision.detection import detect_from_bytes
-    result = await run_in_threadpool(detect_from_bytes, image_bytes)
+    result = await run_in_threadpool(detect_from_bytes, image_bytes, None, "best")
+
+    total_count = result.get("vehicle_count_total", result.get("vehicle_count", 0))
 
     return JSONResponse(content={
-        "vehicle_count":          result["vehicle_count"],
-        "detections":             result["detections"],
-        "annotated_image_base64": result["annotated_image_base64"],
-        "inference_time_ms":      result["inference_time_ms"],
+        "vehicle_count":          total_count,
+        "vehicle_count_total":    total_count,
+        "detections":             result.get("detections", []),
+        "annotated_image_base64": result.get("annotated_image_base64", ""),
+        "inference_time_ms":      result.get("inference_time_ms", 0.0),
         "model_loaded":           result.get("error") is None,
-        "error":                  result["error"],
+        "error":                  result.get("error"),
     })

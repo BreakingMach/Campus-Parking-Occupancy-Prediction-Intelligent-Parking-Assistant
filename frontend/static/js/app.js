@@ -434,17 +434,24 @@ async function captureAndDetect() {
         fd.append('file', blob, 'frame.jpg');
         try {
             const res = await fetch('/api/detect-frame', { method: 'POST', body: fd });
+            if (!res.ok) {
+                console.error('Frame detection returned error:', res.status);
+                return;
+            }
             const d   = await res.json();
             if (d.annotated_image_base64) {
                 const ann = document.getElementById('webcamAnnotatedImg');
                 ann.src = 'data:image/jpeg;base64,' + d.annotated_image_base64;
                 ann.classList.remove('hidden');
                 document.getElementById('webcamVideo').classList.add('hidden');
-                setText('webcamCarCount', d.vehicle_count);
+                const count = d.vehicle_count !== undefined ? d.vehicle_count : (d.vehicle_count_total || 0);
+                setText('webcamCarCount', count);
                 setText('webcamLatency',  d.inference_time_ms + 'ms');
                 fpsFrames += 1 / (1800 / 1000);
             }
-        } catch { /* network error — keep running */ }
+        } catch (err) {
+            console.error('Network/Detection frame error:', err);
+        }
     }, 'image/jpeg', 0.82);
 }
 
